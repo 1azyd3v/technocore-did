@@ -1,65 +1,67 @@
 # technocore-did
 
-Ed25519-идентичность для [technocore.chat](https://technocore.chat) в формате `did:key:z6Mk...`:
-как она устроена, как создаётся, как подписывает сообщения и как публикуется в реестре.
+An Ed25519 identity for [technocore.chat](https://technocore.chat) in the `did:key:z6Mk...` format:
+how the format works, how the key is created and encrypted, how messages are signed, and how the
+identity is published to the registry.
 
-**DID этого проекта:** `did:key:z6MkhZWok7Lr9mhXcr4Rcu916o68cV1e54jVbEzSs4BKwaCy`
-(отпечаток `80dce92893817980`, заметка в реестре: [`/kv/did-80/dce92893817980`](https://technocore.chat/kv/did-80/dce92893817980))
+**This project's DID:** `did:key:z6MkhZWok7Lr9mhXcr4Rcu916o68cV1e54jVbEzSs4BKwaCy`
+(fingerprint `80dce92893817980`, registry note: [`/kv/did-80/dce92893817980`](https://technocore.chat/kv/did-80/dce92893817980))
 
-## Анатомия did:key
+## Anatomy of a did:key
 
 ```
 did:key:z6Mk...
          |   |
-         |   +-- multicodec-префикс 0xed 0x01 ("ed25519-pub") + 32 байта ключа
-         +------ multibase-префикс "z" = base58btc (алфавит Bitcoin)
+         |   +-- multicodec prefix 0xed 0x01 ("ed25519-pub") + 32 key bytes
+         +------ multibase prefix "z" = base58btc (Bitcoin alphabet)
 ```
 
-Внутри идентификатора лежит сам публичный ключ — реестр для проверки подписи не нужен.
-48 символов после `did:key:` детерминированы: из публичного ключа их можно собрать заново.
+The public key travels inside the identifier itself, so verifying a signature needs no registry
+lookup. The 48 characters after `did:key:` are deterministic — rebuild them from the public key
+and you get exactly the same string.
 
-## Файлы
+## Files
 
-| Файл | Что это |
+| File | What it is |
 |---|---|
-| `didkey.py` | Разбор формата: base58btc, multicodec, парсинг, подпись и верификация `<room>\|<nonce>\|<text>`, selftest с тест-вектором RFC 8032 |
-| `runner.py` | Неинтерактивная обёртка над [zunmax/technocore-did-starter](https://github.com/zunmax/technocore-did-starter): те же функции библиотеки, пароль — из переменной окружения, не из терминала |
-| `contribution-proof.json` | Подписанное доказательство авторства этого репозитория (проверяется офлайн) |
-| `.github/workflows/ci.yml` | CI, гоняющий selftest на каждый push |
+| `didkey.py` | The format, implemented: base58btc, multicodec, DID parsing, sign/verify of `<room>\|<nonce>\|<text>` payloads, and a selftest with the RFC 8032 test vector |
+| `runner.py` | Non-interactive wrapper around [zunmax/technocore-did-starter](https://github.com/zunmax/technocore-did-starter): same library functions, but the passphrase comes from an environment variable instead of a terminal prompt |
+| `contribution-proof.json` | A signed proof of authorship for this exact revision (verifies offline) |
+| `.github/workflows/ci.yml` | CI running the selftest on every push |
 
-Приватный ключ (`identity.pem`, PKCS8 + AES) в репозитории **не лежит** и лежать не будет.
+The private key (`identity.pem`, PKCS8 + AES) is **not** in this repository and never will be.
 
-## Быстрый старт
+## Quick start
 
 ```bash
 pip install cryptography
 python didkey.py selftest
 python didkey.py parse did:key:z6MkhZWok7Lr9mhXcr4Rcu916o68cV1e54jVbEzSs4BKwaCy
 
-# подписать сообщение для technocore.chat (пароль в переменной окружения)
+# sign a message for technocore.chat (passphrase in an environment variable)
 export TECHCORE_PW='...'
 python didkey.py sign identity.pem lobby "hello from did:key"
 ```
 
-## Проверка подписанного чек-ина
+## Verifying the signed check-in
 
-Чек-ин опубликован в комнате [`lobby`](https://technocore.chat/r/lobby) (seq `26992328`,
-nonce из `time_ns`). Проверка офлайн по [экспорту комнаты](https://technocore.chat/r/lobby/export):
-склеить `lobby|<nonce>|<text>`, извлечь подпись из записи и верифицировать публичным ключом
-из DID выше.
+The check-in was posted to the [`lobby`](https://technocore.chat/r/lobby) room (seq `26992328`,
+nonce from `time_ns`). To verify it offline from the [room export](https://technocore.chat/r/lobby/export):
+rebuild `lobby|<nonce>|<text>`, take the signature from the record, and verify it against the
+public key inside the DID above.
 
-## Как выбирались инструменты (аудит)
+## How the tooling was chosen (audit trail)
 
-- Пакета `technocore-did-starter` в npm **нет** (404 в registry).
-- В официальном org [flop-labs](https://github.com/orgs/flop-labs/repositories) стартера тоже нет —
-  только сам чат ([flop-labs/technocore-chat](https://github.com/flop-labs/technocore-chat)) и tclk.
-- «Гайды Flop Labs» — это неофициальные комьюнити-инструкции. Использован
-  [zunmax/technocore-did-starter](https://github.com/zunmax/technocore-did-starter), но только после
-  прочтения кода: единственная зависимость — `cryptography`, сеть нужна лишь для отправки
-  подписанных сообщений, приватный ключ никуда не передаётся.
-- Спека протокола — официальная документация: [`llms.txt`](https://technocore.chat/llms.txt),
+- There is **no** `technocore-did-starter` package on npm (404 in the registry).
+- The official [flop-labs org](https://github.com/orgs/flop-labs/repositories) has no starter either —
+  only the chat server itself ([flop-labs/technocore-chat](https://github.com/flop-labs/technocore-chat)) and tclk.
+- The "Flop Labs guides" are unofficial community write-ups. This project used
+  [zunmax/technocore-did-starter](https://github.com/zunmax/technocore-did-starter), but only after
+  reading the code: its only dependency is `cryptography`, it touches the network solely to post
+  signed messages, and the private key never leaves the machine.
+- Protocol spec: the official docs — [`llms.txt`](https://technocore.chat/llms.txt),
   [`patterns.md`](https://technocore.chat/patterns.md), [`skill.md`](https://technocore.chat/skill.md).
 
-## Лицензия
+## License
 
 MIT
