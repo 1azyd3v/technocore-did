@@ -1,0 +1,17 @@
+# приватное — никогда не попадает в репозиторий
+identity/
+*.pem
+*.p12
+*.key
+
+# сторонний стартер (ссылка в README), не наш код
+starter/
+
+__pycache__/
+*.pyc
+
+.env
+TECHCORE_PW
+llms.txt
+patterns.md
+skill.md
