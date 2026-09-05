@@ -57,6 +57,17 @@ def main() -> int:
             )
         )
         return 0
+    if command == "proof":
+        if len(sys.argv) != 5:
+            print(
+                "usage: runner.py proof <key.pem> <artifact_url> <commit>",
+                file=sys.stderr,
+            )
+            return 2
+        proof = ta.create_contribution_proof(private_key, sys.argv[3], sys.argv[4])
+        ta.write_new_json(Path("contribution-proof.json"), proof)
+        print(f"proof written for {proof['did']} commit {proof['commit']}")
+        return 0
     print(f"error: unknown command: {command}", file=sys.stderr)
     return 2
 

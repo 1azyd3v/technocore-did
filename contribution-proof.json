@@ -1,0 +1,7 @@
+{
+  "artifact_url": "https://github.com/McDownalts/technocore-did",
+  "commit": "3e574de6ff24e63bc5e2012657b2bcc7b99f9a35",
+  "did": "did:key:z6MkhZWok7Lr9mhXcr4Rcu916o68cV1e54jVbEzSs4BKwaCy",
+  "schema": "technocore-contribution-proof-v1",
+  "signature": "cuqjoaZIdrYiDlmp5mV3vwipQ3iqWAoesNjllWWxoug2T0Toou351C3C41vxesTPcSO4M0zpbQ3tFwloE5QUBg"
+}
